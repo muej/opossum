@@ -639,7 +639,7 @@ test('CircuitBreaker events', t => {
 });
 
 test('circuit halfOpen', t => {
-  t.plan(14);
+  t.plan(17);
   const options = {
     errorThresholdPercentage: 1,
     resetTimeout: 100
@@ -674,6 +674,16 @@ test('circuit halfOpen', t => {
               // function to be called, and it should pass this time.
               breaker
                 .fire(1)
+                .then(result => {
+                  t.equals(1, result);
+                  t.ok(breaker.closed, 'breaker should be closed');
+                  t.notOk(breaker.pendingClose,
+                    'breaker should not be pending close');
+                })
+                .catch(t.fail);
+              // breaker should stay closed and allow the original function to
+              // be called, and it should pass again.
+              breaker.fire(1)
                 .then(result => {
                   t.equals(1, result);
                   t.ok(breaker.closed, 'breaker should be closed');
